@@ -3,11 +3,21 @@ const { status, successMessage, errorMessage } = require('../helpers/payload');
 
 module.exports = {
     getProduct: async (req, res) => {
+        const page = req.query.page || 1;
+        const perPage = 15
+
+        const startFrom = (page - 1) * perPage;
+
         try {
+            const count = await query(`SELECT COUNT(*) FROM items`);
             const { rows } = await query(
-                `SELECT * FROM items ORDER BY name ASC`
-            )
-            res.send(rows);
+                `SELECT * FROM items ORDER BY name ASC LIMIT $1 OFFSET $2`,
+                [perPage, startFrom]
+            );
+            successMessage.data = rows;
+            successMessage.page = parseInt(page);
+            successMessage.total_page = Math.ceil(parseInt(count.rows[0].count) / perPage);
+            res.send(successMessage);
         } catch (error) {
             console.log(error);
         }
@@ -59,7 +69,7 @@ module.exports = {
 
         try {
             const { rows } = await query(
-                `SELECT * FROM items WHERE name = $1`,
+                `SELECT * FROM items WHERE name = $1 ORDER BY name ASC`,
                 [name]
             );
             res.send(rows);
