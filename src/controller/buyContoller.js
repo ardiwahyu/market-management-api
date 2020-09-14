@@ -14,7 +14,7 @@ module.exports = {
             const count = await query(`SELECT COUNT(*) FROM buys WHERE (date >= $1 AND date <= $2)`,
                 [start_date, end_date]);
             const { rows } = await query(
-                `SELECT a.id, b.name, a.qyt, b.price_sale, b.price_sale*a.qyt AS price_total, a.date, c.name AS unit
+                `SELECT a.id, b.name, a.qyt, b.price_buy, b.price_buy*a.qyt AS price_total, a.date, c.name AS unit
                 FROM buys AS a, items AS b, units AS c
                 WHERE a.item_id = b.id AND b.unit_id = c.id AND
                 (a.date >= $1 AND a.date <= $2) 
