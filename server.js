@@ -7,6 +7,7 @@ const productRoute = require('./src/routes/productRoute');
 const buyRoute = require('./src/routes/buyRoute');
 const saleRoute = require('./src/routes/saleRoute');
 const configRoute = require('./src/routes/configRoute');
+const rekapRoute = require('./src/routes/rekapRoute');
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -16,6 +17,7 @@ app.use('/api/v1', productRoute);
 app.use('/api/v1', buyRoute);
 app.use('/api/v1', saleRoute);
 app.use('/api/v1', configRoute);
+app.use('/api/v1', rekapRoute);
 
 // Unmatched routes handler
 app.use((req, res) => {
