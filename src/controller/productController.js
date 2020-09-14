@@ -11,7 +11,11 @@ module.exports = {
         try {
             const count = await query(`SELECT COUNT(*) FROM items`);
             const { rows } = await query(
-                `SELECT * FROM items ORDER BY name ASC LIMIT $1 OFFSET $2`,
+                `SELECT a.id, a.name, a.qyt, a.price_buy, a.price_sale, b.name AS unit
+                FROM items AS a, units AS b
+                WHERE a.unit_id = b.id
+                ORDER BY a.name ASC
+                LIMIT $1 OFFSET $2`,
                 [perPage, startFrom]
             );
             successMessage.data = rows;
@@ -19,7 +23,9 @@ module.exports = {
             successMessage.total_page = Math.ceil(parseInt(count.rows[0].count) / perPage);
             res.send(successMessage);
         } catch (error) {
-            console.log(error);
+            errorMessage.message = 'Gagal mengambil data';
+            errorMessage.error = error;
+            res.status(status.error).send(errorMessage);
         }
     },
 
@@ -65,16 +71,20 @@ module.exports = {
     },
 
     searchProduct: async (req, res) => {
-        const name = req.query.name;
-
+        const name = '%' + req.query.name + '%';
         try {
             const { rows } = await query(
-                `SELECT * FROM items WHERE name = $1 ORDER BY name ASC`,
+                `SELECT a.id, a.name, a.qyt, a.price_buy, a.price_sale, b.name AS unit
+                FROM items AS a, units AS b
+                WHERE a.unit_id = b.id AND a.name LIKE $1
+                ORDER BY a.name ASC`,
                 [name]
             );
             res.send(rows);
         } catch (error) {
-            console.log(error);
+            errorMessage.message = 'Gagal mengambil data';
+            errorMessage.error = error;
+            res.status(status.error).send(errorMessage);
         }
     },
 

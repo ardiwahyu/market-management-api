@@ -3,23 +3,33 @@ const { status, successMessage, errorMessage } = require('../helpers/payload');
 
 module.exports = {
     getBuyHistory: async (req, res) => {
+        const start_date = req.query.start_date || 'now()';
+        const end_date = req.query.end_date || 'now()';
         const page = req.query.page || 1;
-        const perPage = 15
+        const perPage = req.query.per_page || 15;
 
         const startFrom = (page - 1) * perPage;
 
         try {
-            const count = await query(`SELECT COUNT(*) FROM buys`);
+            const count = await query(`SELECT COUNT(*) FROM buys WHERE (date >= $1 AND date <= $2)`,
+                [start_date, end_date]);
             const { rows } = await query(
-                `SELECT * FROM buys ORDER BY date ASC LIMIT $1 OFFSET $2`,
-                [perPage, startFrom]
+                `SELECT a.id, b.name, a.qyt, b.price_sale, b.price_sale*a.qyt AS price_total, a.date, c.name AS unit
+                FROM buys AS a, items AS b, units AS c
+                WHERE a.item_id = b.id AND b.unit_id = c.id AND
+                (a.date >= $1 AND a.date <= $2) 
+                ORDER BY a.date ASC
+                LIMIT $3 OFFSET $4`,
+                [start_date, end_date, perPage, startFrom]
             )
             successMessage.data = rows;
             successMessage.page = parseInt(page);
             successMessage.total_page = Math.ceil(parseInt(count.rows[0].count) / perPage);
             res.send(successMessage);
         } catch (error) {
-            console.log(error);
+            errorMessage.message = 'Gagal mengambil data';
+            errorMessage.error = error;
+            res.status(status.error).send(errorMessage);
         }
     },
 
