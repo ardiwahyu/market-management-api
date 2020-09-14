@@ -36,8 +36,8 @@ module.exports = {
         try {
             const { rows } = await query(
                 `INSERT INTO items (name, qyt, price_buy, price_sale, unit_id)
-                values ($1, $2, $3, $4, $5)
-                returning *`,
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING *`,
                 [name, qyt, price_buy, price_sale, unit_id]
             )
 
@@ -60,7 +60,7 @@ module.exports = {
         try {
             const update = await query(
                 `UPDATE items SET (name, qyt, price_buy, price_sale, unit_id) = 
-                ($1, $2, $3, $4, $5) WHERE id = $6 returning *`,
+                ($1, $2, $3, $4, $5) WHERE id = $6 RETURNING *`,
                 [name, qyt, price_buy, price_sale, unit_id, id]
             );
             successMessage.message = 'Berhasil memperbarui produk';
@@ -95,7 +95,7 @@ module.exports = {
 
         try {
             const del = await query(
-                `DELETE FROM items WHERE id=$1 returning *`,
+                `DELETE FROM items WHERE id=$1 RETURNING *`,
                 [id]
             );
             successMessage.message = 'Berhasil menghapus produk';

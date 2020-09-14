@@ -40,8 +40,8 @@ module.exports = {
         try {
             const { rows } = await query(
                 `INSERT INTO buys (item_id, qyt, date)
-                values ($1, $2, $3)
-                returning *`,
+                VALUES ($1, $2, $3)
+                RETURNING *`,
                 [item_id, qyt, date]
             )
 
@@ -63,7 +63,7 @@ module.exports = {
             const del = await query(
                 `DELETE FROM buys
                 WHERE id=$1
-                returning *`,
+                RETURNING *`,
                 [id]
             )
 
