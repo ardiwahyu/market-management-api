@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+var cors = require('cors')
 const dotenv = require('dotenv');
 dotenv.config()
 
@@ -9,6 +10,7 @@ const saleRoute = require('./src/routes/saleRoute');
 const configRoute = require('./src/routes/configRoute');
 const rekapRoute = require('./src/routes/rekapRoute');
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
 

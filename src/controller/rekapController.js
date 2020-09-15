@@ -7,15 +7,16 @@ module.exports = {
     getRekapDayMonth: async (req, res) => {
         try {
             const { rows } = await query(
-                `SELECT SUM(a.qyt*(b.price_sale - b.price_buy)-a.discount)
+                `SELECT 1, SUM(a.qyt*(b.price_sale - b.price_buy)-a.discount)
                 FROM sales AS a, items AS b 
-                WHERE a.item_id = b.id AND (a.date >= 'now()' AND a.date <= 'now()')
+                WHERE a.item_id = b.id AND (a.date >= current_date AND a.date <= current_date)
                 UNION
-                SELECT SUM(a.qyt*(b.price_sale - b.price_buy)-a.discount)
+                SELECT 2, SUM(a.qyt*(b.price_sale - b.price_buy)-a.discount)
                 FROM sales AS a, items AS b 
                 WHERE a.item_id = b.id AND 
-                EXTRACT (month FROM a.date) = EXTRACT (month FROM now()) AND 
-                EXTRACT (year FROM a.date) = EXTRACT (year FROM now())`);
+                EXTRACT (month FROM a.date) = EXTRACT (month FROM current_date) AND 
+                EXTRACT (year FROM a.date) = EXTRACT (year FROM current_date)
+                ORDER BY 1`);
 
             const perDay = await query(
                 `SELECT a.date, SUM(a.qyt*(b.price_sale - b.price_buy)-a.discount) AS profit
