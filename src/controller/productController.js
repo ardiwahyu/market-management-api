@@ -6,7 +6,7 @@ const { status, successMessage, errorMessage } = require('../helpers/payload');
 module.exports = {
     getProduct: async (req, res) => {
         const page = req.query.page || 1;
-        const perPage = 15
+        const perPage = req.query.perPage || 15;
 
         const startFrom = (page - 1) * perPage;
 
@@ -23,6 +23,7 @@ module.exports = {
             successMessage.data = rows;
             successMessage.page = parseInt(page);
             successMessage.total_page = Math.ceil(parseInt(count.rows[0].count) / perPage);
+            successMessage.total_entry = parseInt(count.rows[0].count);
             res.send(successMessage);
         } catch (error) {
             errorMessage.message = 'Gagal mengambil data';
@@ -82,7 +83,11 @@ module.exports = {
                 ORDER BY a.name ASC`,
                 [name]
             );
-            res.send(rows);
+            successMessage.data = rows;
+            successMessage.page = 1;
+            successMessage.total_page = 1;
+            successMessage.total_entry = rows.length;
+            res.status(status.success).send(successMessage);
         } catch (error) {
             errorMessage.message = 'Gagal mengambil data';
             errorMessage.error = error;
