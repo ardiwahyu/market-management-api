@@ -6,7 +6,7 @@ const { status, successMessage, errorMessage } = require('../helpers/payload');
 module.exports = {
     getUnit: async (req, res) => {
         try {
-            const { rows } = await query(`SELECT * FROM units`);
+            const { rows } = await query(`SELECT * FROM units WHERE is_delete = false`);
             successMessage.data = rows;
             res.send(successMessage);
         } catch (error) {
@@ -40,7 +40,7 @@ module.exports = {
         const id = req.params.id;
         try {
             const del = await query(
-                `DELETE FROM units
+                `UPDATE units SET is_delete = true
                 WHERE id=$1
                 RETURNING *`,
                 [id]

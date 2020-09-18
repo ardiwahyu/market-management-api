@@ -11,11 +11,11 @@ module.exports = {
         const startFrom = (page - 1) * perPage;
 
         try {
-            const count = await query(`SELECT COUNT(*) FROM items`);
+            const count = await query(`SELECT COUNT(*) FROM items WHERE is_delete = false`);
             const { rows } = await query(
                 `SELECT a.id, a.name, a.qyt, a.price_buy, a.price_sale, b.name AS unit
                 FROM items AS a, units AS b
-                WHERE a.unit_id = b.id
+                WHERE a.unit_id = b.id AND a.is_delete = false
                 ORDER BY a.name ASC
                 LIMIT $1 OFFSET $2`,
                 [perPage, startFrom]
@@ -51,6 +51,8 @@ module.exports = {
             errorMessage.message = 'Gagal menambahkan produk';
             errorMessage.error = error;
             res.status(status.error).send(errorMessage);
+            console.log(req.body);
+            console.log(error);
         }
     },
 
@@ -79,7 +81,7 @@ module.exports = {
             const { rows } = await query(
                 `SELECT a.id, a.name, a.qyt, a.price_buy, a.price_sale, b.name AS unit
                 FROM items AS a, units AS b
-                WHERE a.unit_id = b.id AND a.name LIKE $1
+                WHERE a.unit_id = b.id AND a.name LIKE $1 AND a.is_delete = false
                 ORDER BY a.name ASC`,
                 [name]
             );
@@ -100,7 +102,7 @@ module.exports = {
 
         try {
             const del = await query(
-                `DELETE FROM items WHERE id=$1 RETURNING *`,
+                `UPDATE items SET is_delete = true WHERE id=$1 RETURNING *`,
                 [id]
             );
             successMessage.message = 'Berhasil menghapus produk';
