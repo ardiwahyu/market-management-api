@@ -1,5 +1,6 @@
 'use strict'
 
+const format = require('pg-format');
 const { query } = require('../db/query');
 const { status, successMessage, errorMessage } = require('../helpers/payload');
 
@@ -17,16 +18,23 @@ module.exports = {
     },
 
     addUnit: async (req, res) => {
-        const { name } = req.body;
+        const { add, remove } = req.body;
         try {
-            const { rows } = await query(`INSERT INTO units (name) 
-                VALUES ($1) RETURNING *`,
-                [name]
-            )
+            if (add != "") {
+                const value = []
+                add.split(",").forEach(element => {
+                    if (element != "") {
+                        value.push([element]);
+                    }
+                });
+                const sqlAdd = format(`INSERT INTO units (name) VALUES %L RETURNING *`, value);
+                await query(sqlAdd);
+            }
+            if (remove != "") {
+                const sqlRemove = `UPDATE units SET is_delete = true WHERE id in (${remove}) RETURNING *`
+                await query(sqlRemove);
+            }
 
-            const dbResponse = rows[0];
-
-            successMessage.data = dbResponse;
             successMessage.message = 'Berhasil menambahkan unit';
             res.status(status.created).send(successMessage);
         } catch (error) {
