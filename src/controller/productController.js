@@ -32,6 +32,23 @@ module.exports = {
         }
     },
 
+    getAllProduct: async (req, res) => {
+        try {
+            const { rows } = await query(
+                `SELECT a.id, a.name, a.qyt, a.price_sale, b.name AS unit
+                FROM items AS a, units AS b
+                WHERE a.unit_id = b.id AND a.is_delete = false
+                ORDER BY a.name ASC`
+            );
+            successMessage.data = rows;
+            res.send(successMessage);
+        } catch (error) {
+            errorMessage.message = 'Gagal mengambil data';
+            errorMessage.error = error;
+            res.status(status.error).send(errorMessage);
+        }
+    },
+
     addProduct: async (req, res) => {
         const { name, qyt, price_buy, price_sale, unit_id } = req.body;
         try {
