@@ -40,15 +40,21 @@ module.exports = {
         const { body } = req.body;
         try {
             const value = [];
-            body.forEach(element => {
-                element = JSON.parse(element);
-                value.push([parseInt(element.id), parseInt(element.qyt), element.date || 'now()', parseInt(element.discount)])
-            });
+            if (typeof body == "string") {
+                const bodyJson = JSON.parse(body);
+                value.push([bodyJson.id, bodyJson.qyt, bodyJson.date || 'now()', bodyJson.discount])
+            } else {
+                body.forEach(element => {
+                    element = JSON.parse(element);
+                    value.push([element.id, element.qyt, element.date || 'now()', element.discount])
+                });
+            }
             const sqlAdd = format(`INSERT INTO sales (item_id, qyt, date, discount) VALUES %L`, value);
             await query(sqlAdd);
             successMessage.message = 'Berhasil menambahkan penjualan';
             res.status(status.created).send(successMessage);
         } catch (error) {
+            console.log(error);
             errorMessage.message = 'Gagal menambahkan penjualan';
             errorMessage.error = error;
             res.status(status.error).send(errorMessage);
