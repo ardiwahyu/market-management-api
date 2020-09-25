@@ -1,6 +1,7 @@
 'use strict'
 
 const { query } = require('../db/query');
+const format = require('pg-format');
 const { status, successMessage, errorMessage } = require('../helpers/payload');
 
 module.exports = {
@@ -36,18 +37,15 @@ module.exports = {
     },
 
     addSaleHistory: async (req, res) => {
-        const { item_id, qyt, date, discount } = req.body;
+        const { body } = req.body;
         try {
-            const { rows } = await query(
-                `INSERT INTO sales (item_id, qyt, date, discount)
-                VALUES ($1, $2, $3, $4)
-                RETURNING *`,
-                [item_id, qyt, date, discount]
-            )
-
-            const dbResponse = rows[0];
-
-            successMessage.data = dbResponse;
+            const value = [];
+            body.forEach(element => {
+                element = JSON.parse(element);
+                value.push([parseInt(element.id), parseInt(element.qyt), element.date || 'now()', parseInt(element.discount)])
+            });
+            const sqlAdd = format(`INSERT INTO sales (item_id, qyt, date, discount) VALUES %L`, value);
+            await query(sqlAdd);
             successMessage.message = 'Berhasil menambahkan penjualan';
             res.status(status.created).send(successMessage);
         } catch (error) {
