@@ -54,7 +54,6 @@ module.exports = {
             successMessage.message = 'Berhasil menambahkan penjualan';
             res.status(status.created).send(successMessage);
         } catch (error) {
-            console.log(error);
             errorMessage.message = 'Gagal menambahkan penjualan';
             errorMessage.error = error;
             res.status(status.error).send(errorMessage);
