@@ -24,6 +24,7 @@ module.exports = {
                 LIMIT $3 OFFSET $4`,
                 [start_date, end_date, perPage, startFrom]
             )
+            successMessage.message = 'Berhasil mengambil data';
             successMessage.data = rows;
             successMessage.page = parseInt(page);
             successMessage.total_page = Math.ceil(parseInt(count.rows[0].count) / perPage);

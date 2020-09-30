@@ -17,7 +17,7 @@ module.exports = {
             const count = await query(`SELECT COUNT(*) FROM sales WHERE (date >= $1 AND date <= $2)`,
                 [start_date, end_date]);
             const { rows } = await query(
-                `SELECT a.id, b.name, a.qyt, b.price_sale, a.discount, b.price_sale*a.qyt-a.discount AS price_total, a.date, c.name AS unit
+                `SELECT a.id, b.name, a.qyt, b.price_sale, a.discount, b.price_sale*a.qyt AS price, b.price_sale*a.qyt-a.discount AS price_total, a.date, c.name AS unit
                 FROM sales AS a, items AS b, units AS c
                 WHERE a.item_id = b.id AND b.unit_id = c.id AND
                 (a.date >= $1 AND a.date <= $2) 
@@ -25,8 +25,10 @@ module.exports = {
                 LIMIT $3 OFFSET $4`,
                 [start_date, end_date, perPage, startFrom]
             )
+            successMessage.message = 'Berhasil mengambil data';
             successMessage.data = rows;
             successMessage.page = parseInt(page);
+            successMessage.total_entry = parseInt(count.rows[0].count);
             successMessage.total_page = Math.ceil(parseInt(count.rows[0].count) / perPage);
             res.send(successMessage);
         } catch (error) {
