@@ -1,10 +1,11 @@
 'use strict'
 
 const { query } = require('../db/query');
+const format = require('pg-format');
 const { status, successMessage, errorMessage } = require('../helpers/payload');
 
 module.exports = {
-    getBuyHistory: async (req, res) => {
+    getExpenseHistory: async (req, res) => {
         const start_date = req.query.start_date || 'now()';
         const end_date = req.query.end_date || 'now()';
         const page = req.query.page || 1;
@@ -13,14 +14,13 @@ module.exports = {
         const startFrom = (page - 1) * perPage;
 
         try {
-            const count = await query(`SELECT COUNT(*) FROM buys WHERE (date >= $1 AND date <= $2)`,
+            const count = await query(`SELECT COUNT(*) FROM expenses WHERE (date >= $1 AND date <= $2)`,
                 [start_date, end_date]);
             const { rows } = await query(
-                `SELECT a.id, b.name, a.qyt, b.price_buy, b.price_buy*a.qyt AS price_total, a.date, c.name AS unit
-                FROM buys AS a, items AS b, units AS c
-                WHERE a.item_id = b.id AND b.unit_id = c.id AND
-                (a.date >= $1 AND a.date <= $2) 
-                ORDER BY a.date ASC
+                `SELECT *
+                FROM expenses
+                WHERE (date >= $1 AND date <= $2) 
+                ORDER BY date ASC
                 LIMIT $3 OFFSET $4`,
                 [start_date, end_date, perPage, startFrom]
             )
@@ -36,42 +36,44 @@ module.exports = {
         }
     },
 
-    addBuyHistory: async (req, res) => {
-        const { item_id, qyt, date } = req.body;
+    addExpenseHistory: async (req, res) => {
+        const { body } = req.body;
         try {
-            const { rows } = await query(
-                `INSERT INTO buys (item_id, qyt, date)
-                VALUES ($1, $2, $3)
-                RETURNING *`,
-                [item_id, qyt, date]
-            )
-
-            const dbResponse = rows[0];
-
-            successMessage.data = dbResponse;
-            successMessage.message = 'Berhasil menambahkan pembelian';
+            const value = [];
+            if (typeof body == "string") {
+                const bodyJson = JSON.parse(body);
+                value.push([bodyJson.name, bodyJson.price, bodyJson.date || 'now()', bodyJson.detail]);
+            } else {
+                body.forEach(element => {
+                    element = JSON.parse(element);
+                    value.push([element.name, element.price, element.date || 'now()', element.detail]);
+                });
+            }
+            const sqlAdd = format(`INSERT INTO expenses (name, price, date, detail) VALUES %L`, value);
+            await query(sqlAdd);
+            successMessage.message = 'Berhasil menambahkan pengeluaran';
             res.status(status.created).send(successMessage);
         } catch (error) {
-            errorMessage.message = 'Gagal menambahkan pembelian';
+            errorMessage.message = 'Gagal menambahkan pengeluaran';
             errorMessage.error = error;
             res.status(status.error).send(errorMessage);
         }
     },
 
-    deleteBuyHistory: async (req, res) => {
+    deleteExpenseHistory: async (req, res) => {
         const id = req.params.id;
         try {
             const del = await query(
-                `DELETE FROM buys
+                `DELETE FROM expenses
                 WHERE id=$1
                 RETURNING *`,
                 [id]
             )
 
-            successMessage.message = 'Berhasil menghapus pembelian';
+            successMessage.message = 'Berhasil menghapus pengeluaran';
             res.status(status.success).send(successMessage);
         } catch (error) {
-            errorMessage.message = 'Gagal menghapus pembelian';
+            errorMessage.message = 'Gagal menghapus pengeluaran';
             errorMessage.error = error;
             res.status(status.error).send(errorMessage);
         }
